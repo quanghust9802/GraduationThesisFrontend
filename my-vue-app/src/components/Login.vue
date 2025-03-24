@@ -121,7 +121,7 @@ export default {
       try {
         const response = await loginGuest(this.username, this.password);
         if (response.errCode === 200) {
-          const token = response.token;
+          const token = response?.data?.token;
           this.$store.dispatch("login", token);
           this.$router.push("/guest");
           this.$toast.add({

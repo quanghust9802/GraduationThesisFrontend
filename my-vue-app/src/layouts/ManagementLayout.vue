@@ -75,9 +75,9 @@
                 <router-link 
                   to="/guest" 
                   class="block py-2 px-4 rounded-lg text-gray-600 hover:bg-blue-100 hover:text-blue-600 transition-colors duration-300"
-                  :class="{ 'bg-blue-200 text-blue-700': isActive('/guest') }"
+                  :class="{ 'bg-blue-200 text-blue-700': isActive('/guest/my-log') }"
                 >
-                  Trang khách 
+                  Lịch sử ra vào 
                 </router-link>
               </li>
               <li>

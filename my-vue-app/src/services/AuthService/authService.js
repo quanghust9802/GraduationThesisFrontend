@@ -11,10 +11,27 @@ export const loginUser = async (username, password) => {
 
 
 };
-export const registerUser = async (customerData) => {
+export const registerUser = async (formData) => {
   try {
-    const response = await apiClient.post('/users/create', customerData);
-    return response.data; 
+    const response = await apiClient.post("/users/register", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const createUser = async (formData) => {
+  try {
+    const response = await apiClient.post("/users/create", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
   } catch (error) {
     throw error;
   }

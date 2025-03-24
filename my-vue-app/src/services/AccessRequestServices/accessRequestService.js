@@ -19,3 +19,17 @@ export const getAccessRequests = async () => {
     });
     return response.data;
   };
+
+    
+  export const createRequest = async (formData) => {
+    try {
+      const response = await apiClient.post("/access-request/create", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };

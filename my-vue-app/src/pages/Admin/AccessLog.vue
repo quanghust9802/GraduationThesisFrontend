@@ -6,7 +6,7 @@
     <div class="card mb-6">
       <div class="flex flex-wrap gap-4">
         <div class="flex flex-col">
-          <label class="mb-2">Start Date</label>
+          <label class="mb-2">Thời gian bắt đầu</label>
           <Calendar
             v-model="filters.startDate"
             dateFormat="yy-mm-dd"
