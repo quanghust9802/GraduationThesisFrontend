@@ -1,14 +1,25 @@
 import * as signalR from "@microsoft/signalr";
 
 const connection = new signalR.HubConnectionBuilder()
-  .withUrl("http://localhost:5000/notificationHub")
+  .withUrl("https://localhost:7244/notificationHub")
+  .withAutomaticReconnect()
   .configureLogging(signalR.LogLevel.Information)
   .build();
 
-connection.on("ReceiveNotification", (message) => {
-  console.log("New Notification:", message);
-});
+export async function startSignalR() {
+  try {
+    await connection.start();
+    console.log("SignalR Connected.");
+  } catch (err) {
+    console.error("SignalR Connection Error:", err);
+    setTimeout(startSignalR, 5000);
+  }
+}
 
-connection.start().catch(err => console.error(err));
+export function onNotificationReceived(callback) {
+  connection.on("ReceiveNotification", (message) => {
+    callback(message);
+  });
+}
 
 export default connection;

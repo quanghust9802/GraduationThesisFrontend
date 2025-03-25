@@ -1,16 +1,16 @@
 <template>
   <div class="p-4">
     <div class="flex justify-between items-center mb-4">
-      <h1
+      <!-- <h1
         class="text-2xl font-bold text-gray-400 mb-4 border-b-2 border-gray-100 pb-2"
       >
         Quản lý người dùng
-      </h1>
+      </h1> -->
       <button
         @click="openAddUserDialog"
-        class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 mb-4 rounded"
+        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 mb-4 rounded"
       >
-        Thêm mới nhân viên
+        Thêm mới 
       </button>
     </div>
 
@@ -33,16 +33,17 @@
       responsiveLayout="scroll"
     >
       <template #header>
-        <div class="flex justify-between">
-          <span class="text-lg">Danh sách nhân viên</span>
-          <div>
-            <InputText
-              v-model="filters['global'].value"
-              placeholder="Search..."
-              class="p-inputtext-sm"
-            />
-          </div>
-        </div>
+        <div class="flex justify-between items-center">
+  <span class="text-2xl text-gray-700">Danh sách người dùng</span>
+  <div class="w-80"> 
+    <InputText
+      v-model="filters['global'].value"
+      placeholder="Nhập để tìm kiếm..."
+      class="p-inputtext-lg w-full px-4 py-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200"
+    />
+  </div>
+</div>
+
       </template>
 
       <Column field="cccdId" header="CCCD" sortable></Column>
@@ -90,13 +91,13 @@
         </template>
       </Column>
     </DataTable>
-
     <Dialog
-      v-model:visible="dialogVisible"
+     :visible ="dialogVisible"
       :closable="true"
       :style="{ width: '40%', height: 'auto' }"
+      header="Thông tin người dùng"
     >
-      <UserForm :user="selectedUser" @save="saveUser" />
+      <UserForm :user="selectedUser" @save="saveUser" @close="dialogVisible = false" />
     </Dialog>
 
     <Toast ref="toast" />
@@ -150,7 +151,7 @@ export default {
       loading.value = true;
       try {
         const response = await getUsers();
-        users.value = response;
+        users.value = response?.data;
       } catch (error) {
         showToast("Lỗi khi lấy danh sách người dùng", "error");
       } finally {

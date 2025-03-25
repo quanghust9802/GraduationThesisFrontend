@@ -19,22 +19,9 @@ export const getByUserId = async (userId) => {
     });
     return response.data;
   };
-  
-  export const createRequest = async (formData) => {
-    try {
-      const response = await apiClient.post("/access-request/create", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  };
-  export const getByFilter = async (startDate, endDate, requestId) => {
+  export const getByFilter = async (startDate, endDate, requestId, userId) => {
     const response = await apiClient.get('/access-log/get-filter', {
-      params: { startDate, endDate, requestId }
+      params: { startDate, endDate, requestId, userId}
     });
     return response.data;
   };

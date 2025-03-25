@@ -1,123 +1,147 @@
 <template>
-  <div class="container mx-auto p-4">
-    <Card>
-      <template #header>
-        <h1 class="text-2xl font-bold p-4">Lịch sử ra vào của tôi</h1>
-      </template>
-      <template #content>
-        <DataTable 
-          :value="accessLogs" 
-          :paginator="true" 
-          :rows="10"
-          :loading="loading"
-          class="p-datatable-sm"
-          responsiveLayout="scroll"
-          :filters="filters"
-        >
-          <template #header>
-            <div class="flex justify-between items-center">
-              <span class="p-input-icon-left">
-                <i class="pi pi-search" />
-                <InputText v-model="filters['global'].value" placeholder="Tìm kiếm..." />
-              </span>
-            </div>
-          </template>
+  <div class="p-6">
+    <h1 class="text-2xl font-bold mb-4">Lịch sử ra vào của tôi</h1>
 
-          <Column field="accessTime" header="Thời gian truy cập" :sortable="true">
-            <template #body="slotProps">
-              {{ formatDate(slotProps.data.accessTime) }}
-            </template>
-          </Column>
+    <!-- Filter Section -->
+    <div class="card mb-6">
+      <div class="flex flex-wrap gap-4">
+        <div class="flex flex-col">
+          <label class="mb-2">Thời gian bắt đầu</label>
+          <Calendar
+            v-model="filters.startDate"
+            dateFormat="yy-mm-dd"
+            showIcon
+            class="p-inputtext border border-gray-300 rounded-md px-4 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+          />
+        </div>
+        <div class="flex flex-col">
+          <label class="mb-2">Thời gian kết thúc</label>
+          <Calendar
+            v-model="filters.endDate"
+            dateFormat="yy-mm-dd"
+            showIcon
+            class="p-inputtext border border-gray-300 rounded-md px-4 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+          />
+        </div>
+        <div class="flex items-center gap-3 mt-4">
+          <Button
+            label="Lọc"
+            icon="pi pi-filter"
+            @click="fetchRequests"
+            class="border border-green-500 text-green-500 bg-white rounded-lg px-4 py-2 transition-all duration-200 hover:bg-green-500 hover:text-white"
+          />
+          <Button
+            label="Xóa"
+            icon="pi pi-times"
+            @click="clearFilters"
+            class="border border-red-500 text-red-500 bg-white rounded-lg px-4 py-2 transition-all duration-200 hover:bg-red-500 hover:text-white"
+          />
+        </div>
+      </div>
+    </div>
 
-          <Column field="status" header="Trạng thái" :sortable="true">
-            <template #body="slotProps">
-              <Tag 
-                :value="slotProps.data.status === 1 ? 'Được cấp phép' : 'Bị từ chối'"
-                :severity="slotProps.data.status === 1 ? 'success' : 'danger'"
-              />
-            </template>
-          </Column>
-
-          <Column field="accessRequest.purpose" header="Mục đích">
-            <template #body="slotProps">
-              {{ slotProps.data.accessRequest?.purpose || 'N/A' }}
-            </template>
-          </Column>
-
-          <Column field="accessRequest.startTime" header="Thời gian bắt đầu">
-            <template #body="slotProps">
-              {{ formatDate(slotProps.data.accessRequest?.startTime) }}
-            </template>
-          </Column>
-
-          <Column field="accessRequest.endTime" header="Thời gian kết thúc">
-            <template #body="slotProps">
-              {{ formatDate(slotProps.data.accessRequest?.endTime) }}
-            </template>
-          </Column>
-        </DataTable>
-      </template>
-    </Card>
+    <!-- Logs Table -->
+    <DataTable
+      :value="accessLogs"
+      :loading="loading"
+      paginator
+      :rows="10"
+      :rowsPerPageOptions="[5, 10, 20, 50]"
+      responsiveLayout="scroll"
+      class="p-datatable-sm"
+    >
+      <Column field="id" header="Mã truy cập" sortable />
+      <Column field="user.fullName" header="Người truy cập" sortable />
+      <Column field="accessRequestId" header="Mã yêu cầu" sortable />
+      <Column field="accessTime" header="Thời gian truy cập" sortable>
+        <template #body="slotProps">
+          {{ formatDate(slotProps.data.accessTime) }}
+        </template>
+      </Column>
+      <Column field="status" header="Trạng thái">
+        <template #body="slotProps">
+          <span
+            :class="{
+              'text-green-600 font-bold': slotProps.data.status === 1,
+              'text-red-600 font-bold': slotProps.data.status === 0,
+            }"
+          >
+            {{ slotProps.data.status === 1 ? "Granted" : "Denied" }}
+          </span>
+        </template>
+      </Column>
+    </DataTable>
   </div>
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue'
-import { useStore } from 'vuex' 
-import { getByUserId, getByRequestId, getByFilter } from "../../services/AccessLogServices/accessLogService.js";
-import { FilterMatchMode } from 'primevue/api'
-import Card from 'primevue/card'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import InputText from 'primevue/inputtext'
-import Tag from 'primevue/tag'
+import { ref, onMounted , computed} from "vue";
+import DataTable from "primevue/datatable";
+import Column from "primevue/column";
+import Calendar from "primevue/calendar";
+import InputText from "primevue/inputtext";
+import Button from "primevue/button";
+import { useStore } from "vuex";
+import {
+  getAccessLogs,
+  getByFilter,
+} from "../../services/AccessLogServices/accessLogService";
 
 export default {
-  name: 'MyLog',
+  name: "AccessLog",
   components: {
-    Card,
     DataTable,
     Column,
+    Calendar,
     InputText,
-    Tag
+    Button,
   },
   setup() {
-    const store = useStore()
-    const userId = computed(() => store.state.userId) 
-    const accessLogs = ref([])
-    const loading = ref(false)
+    const store = useStore();
+    const accessLogs = ref([]);
+    const loading = ref(false);
     const filters = ref({
-      global: { value: null, matchMode: FilterMatchMode.CONTAINS }
-    })
+      startDate: null,
+      endDate: null,
+    });
 
-    const fetchAccessLogs = async () => {
-      loading.value = true
+    const fetchLogs = async () => {
+      loading.value = true;
       try {
-        if (userId.value) {
-          accessLogs.value = await getByUserId(userId.value)
-        }
+        const startDate = filters.value.startDate || null;
+        const endDate = filters.value.endDate || null;
+        const user = computed(() => store.state.currentUser);
+        const userId = computed(() => user.value?.userId || null);
+
+        const data = await getByFilter(startDate, endDate, userId);
+        accessLogs.value = data;
       } catch (error) {
-        console.error('Error fetching access logs:', error)
-      } finally {
-        loading.value = false
+        console.error("Error fetching logs:", error);
       }
-    }
+      loading.value = false;
+    };
+
+    const clearFilters = () => {
+      filters.value = { startDate: null, endDate: null, requestId: "" };
+      fetchLogs();
+    };
 
     const formatDate = (date) => {
-      return new Date(date).toLocaleString('vi-VN', {
-        dateStyle: 'medium',
-        timeStyle: 'short'
-      })
-    }
+      return new Date(date).toLocaleString();
+    };
 
-    onMounted(fetchAccessLogs)
+    onMounted(() => {
+      fetchLogs();
+    });
 
     return {
       accessLogs,
       loading,
       filters,
-      formatDate
-    }
-  }
-}
+      fetchLogs,
+      clearFilters,
+      formatDate,
+    };
+  },
+};
 </script>

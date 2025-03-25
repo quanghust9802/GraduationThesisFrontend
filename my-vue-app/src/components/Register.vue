@@ -319,7 +319,7 @@ export default {
         }
       } else {
         this.avatar = null;
-        this.avatarPreview = null; // Xóa ảnh xem trước nếu không có file
+        this.avatarPreview = null; 
       }
     },
 

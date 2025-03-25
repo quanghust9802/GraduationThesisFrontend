@@ -8,15 +8,16 @@
         <div class="flex flex-wrap gap-4">
           <div class="flex flex-col">
             <label class="mb-2">Thời gian bắt đầu</label>
-            <Calendar v-model="filters.startDate" dateFormat="yy-mm-dd" showIcon />
+            <Calendar v-model="filters.startDate" dateFormat="yy-mm-dd" showIcon class ="p-inputtext border border-gray-300 rounded-md px-4 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200" />
           </div>
           <div class="flex flex-col">
             <label class="mb-2">Thời gian kết thúc</label>
-            <Calendar v-model="filters.endDate" dateFormat="yy-mm-dd" showIcon />
+            <Calendar v-model="filters.endDate" dateFormat="yy-mm-dd" showIcon class = "p-inputtext border border-gray-300 rounded-md px-4 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200" />
           </div>
-          <div class="flex items-end">
-            <Button label="Generate Report" icon="pi pi-chart-bar" @click="fetchStats" />
-            <Button label="Clear" icon="pi pi-times" class="ml-2 p-button-secondary" @click="clearFilters" />
+          <div class="flex items-end gap-3 mt-4">
+            <Button label="Tạo báo cáo" icon="pi pi-chart-bar" @click="fetchStats"            class="border border-green-500 text-green-500 bg-white rounded-lg px-4 py-2 transition-all duration-200 hover:bg-green-500 hover:text-white"
+            />
+            <Button label="Xóa" icon="pi pi-times" class="border border-red-500 text-red-500 bg-white rounded-lg px-4 py-2 transition-all duration-200 hover:bg-red-500 hover:text-white" @click="clearFilters"  />
           </div>
         </div>
       </div>

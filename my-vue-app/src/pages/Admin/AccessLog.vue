@@ -11,26 +11,38 @@
             v-model="filters.startDate"
             dateFormat="yy-mm-dd"
             showIcon
+            class="p-inputtext border border-gray-300 rounded-md px-4 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
           />
         </div>
         <div class="flex flex-col">
           <label class="mb-2">Thời gian kết thúc</label>
-          <Calendar v-model="filters.endDate" dateFormat="yy-mm-dd" showIcon />
+          <Calendar
+            v-model="filters.endDate"
+            dateFormat="yy-mm-dd"
+            showIcon
+            class="p-inputtext border border-gray-300 rounded-md px-4 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+          />
         </div>
         <div class="flex flex-col">
           <label class="mb-2">Người yêu cầu</label>
           <InputText
             v-model="filters.requestId"
-            placeholder="Enter Request ID"
+            placeholder="Nhập người yêu cầu"
+            class="p-inputtext border border-gray-300 rounded-md px-4 py-2"
           />
         </div>
-        <div class="flex items-end">
-          <Button label="Filter" icon="pi pi-filter" @click="fetchLogs" />
+        <div class="flex items-center gap-3 mt-4">
           <Button
-            label="Clear"
+            label="Lọc"
+            icon="pi pi-filter"
+            @click="fetchRequests"
+            class="border border-green-500 text-green-500 bg-white rounded-lg px-4 py-2 transition-all duration-200 hover:bg-green-500 hover:text-white"
+          />
+          <Button
+            label="Xóa"
             icon="pi pi-times"
-            class="ml-2 p-button-secondary"
             @click="clearFilters"
+            class="border border-red-500 text-red-500 bg-white rounded-lg px-4 py-2 transition-all duration-200 hover:bg-red-500 hover:text-white"
           />
         </div>
       </div>
@@ -46,15 +58,15 @@
       responsiveLayout="scroll"
       class="p-datatable-sm"
     >
-      <Column field="id" header="Log ID" sortable />
-      <Column field="user.fullName" header="User" sortable />
-      <Column field="accessRequestId" header="Request ID" sortable />
-      <Column field="accessTime" header="Access Time" sortable>
+      <Column field="id" header="Mã truy cập" sortable />
+      <Column field="user.fullName" header="Người truy cập" sortable />
+      <Column field="accessRequestId" header="Mã yêu cầu" sortable />
+      <Column field="accessTime" header="Thời gian truy cập" sortable>
         <template #body="slotProps">
           {{ formatDate(slotProps.data.accessTime) }}
         </template>
       </Column>
-      <Column field="status" header="Status">
+      <Column field="status" header="Trạng thái">
         <template #body="slotProps">
           <span
             :class="{
@@ -77,7 +89,10 @@ import Column from "primevue/column";
 import Calendar from "primevue/calendar";
 import InputText from "primevue/inputtext";
 import Button from "primevue/button";
-import { getAccessLogs,getByFilter } from "../../services/AccessLogServices/accessLogService";
+import {
+  getAccessLogs,
+  getByFilter,
+} from "../../services/AccessLogServices/accessLogService";
 
 export default {
   name: "AccessLog",

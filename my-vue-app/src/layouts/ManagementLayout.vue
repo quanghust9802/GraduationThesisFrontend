@@ -1,14 +1,12 @@
-  <template>
+  <!-- <template>
     <div class="flex flex-col h-screen bg-gray-100">
-      <!-- Navbar at the top -->
       <Navbar 
         v-if="isLoggedIn" 
-        PathHome='/admin/users' 
+        PathHome='/admin/user' 
         class="w-full fixed top-0 left-0 z-10 bg-blue-600 text-white shadow-lg"
       />
   
-      <div class="flex flex-1 mt-24 mx-4 overflow-hidden">
-        <!-- Sidebar navigation -->
+      <div class="flex flex-1 mt-2 mx-4 overflow-hidden">
         <nav 
           v-if="isLoggedIn" 
           class="w-64 bg-white p-6 rounded-lg shadow-lg mr-4 mt-4"
@@ -60,15 +58,6 @@
                   Báo cáo ra vào
                 </router-link>
               </li>
-              <!-- <li>
-                <router-link 
-                  to="/admin/report2" 
-                  class="block py-2 px-4 rounded-lg text-gray-600 hover:bg-blue-100 hover:text-blue-600 transition-colors duration-300"
-                  :class="{ 'bg-blue-200 text-blue-700': isActive('/admin/report2') }"
-                >
-                  Báo cáo bất thường
-                </router-link>
-              </li> -->
             </template>
             <template v-if="role === 'Guest'">
               <li>
@@ -93,7 +82,6 @@
           </ul>
         </nav>
   
-        <!-- Main content area -->
         <main class="flex-1 bg-white rounded-lg shadow-lg p-6 overflow-auto mt-4">
           <router-view />
         </main>
@@ -128,6 +116,100 @@
   </script>
   
   <style>
-  /* Add any styles for your management layout */
   </style>
+   -->
+
+   <template>
+    <div class="flex flex-col min-h-screen bg-gray-50">
+      <!-- Navbar -->
+      <Navbar 
+        v-if="isLoggedIn" 
+        class="w-full fixed top-0 left-0 z-10"
+      />
   
+      <main class="flex-1 mt-16 px-2 py-8">
+        <div class="max-w-7xl mx-auto">
+          <!-- <h1 class="text-3xl font-bold text-gray-600 mb-4 border-b-2 border-gray-100 pb-2 mt-10">
+            {{ role === 'Admin' ? 'Trang quản lý' : 'Trang khách' }}
+          </h1>
+  
+          <div class="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-md mb-8">
+            <div class="flex-1">
+              <input 
+                type="text" 
+                placeholder="Tìm kiếm..." 
+                class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                v-model="searchQuery"
+              />
+            </div>
+            <button class="p-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">Tìm kiếm</button>
+          </div> -->
+  
+          <div class="bg-white rounded-lg shadow-md p-6 m-10">
+            <router-view :searchQuery="searchQuery" />
+          </div>
+        </div>
+      </main>
+    </div>
+  </template>
+  <script>
+  import Navbar from '../components/Navbar.vue';
+  import { mapState } from 'vuex';
+  import { ref } from 'vue';
+  
+  export default {
+    components: {
+      Navbar
+    },
+    setup() {
+      const searchQuery = ref('');
+  
+      return {
+        searchQuery,
+      };
+    },
+    computed: {
+      ...mapState(['currentUser']),
+      role() {
+        console.log("current User role: " + this.currentUser.role);
+        return this.currentUser ? this.currentUser.role : '';
+      },
+      isLoggedIn() {
+        return !!this.currentUser;
+      }
+    }
+  };
+  </script>
+  <style scoped>
+  .bg-gray-50 {
+    background-color: #f9fafb;
+  }
+  
+  .text-blue-600 {
+    color: #2563eb;
+  }
+  
+  .bg-blue-600 {
+    background-color: #2563eb;
+  }
+  
+  .bg-blue-600:hover {
+    background-color: #1d4ed8;
+  }
+  
+  .border-blue-600 {
+    border-color: #2563eb;
+  }
+  
+  .text-gray-600 {
+    color: #4b5563;
+  }
+  
+  .shadow-md {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .rounded-lg {
+    border-radius: 0.5rem;
+  }
+  </style>

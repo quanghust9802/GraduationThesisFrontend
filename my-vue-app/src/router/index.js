@@ -43,11 +43,6 @@ const routes = [
     path: '/guest',
     component: ManagementLayout,
     children: [
-      // {
-      //   path: '',
-      //   name: 'HomeGuest',
-      //   component: HomeGuest
-      // },
       {
         path: 'my-log',
         name: 'Mylog',
@@ -85,6 +80,17 @@ const routes = [
         component: Report
       },
 
+    ]
+  },
+  {
+    path: '/employee',
+    component: ManagementLayout,
+    children: [
+      {
+        path: 'my-log',
+        name: 'Mylog',
+        component: Mylog
+      },
     ]
   },
 ];
