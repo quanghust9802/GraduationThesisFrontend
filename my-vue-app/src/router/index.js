@@ -2,7 +2,7 @@ import Login from '../components/Login.vue'
 import Register from '../components/Register.vue'
 import ManageUser from '../pages/User/ManageUser.vue' 
 import Home from '../pages/Home.vue'
-import Mylog from '../pages/Guest/Mylog.vue'
+import MyLog from '../pages/Guest/MyLog.vue'
 import LoginEmployee from '../components/LoginEmployee.vue'
 import AccessRequestManagement from '../pages/Admin/AccessRequestManagement.vue'
 import MyRequest from '../pages/Guest/MyRequest.vue'
@@ -45,8 +45,8 @@ const routes = [
     children: [
       {
         path: 'my-log',
-        name: 'Mylog',
-        component: Mylog
+        name: 'MyLog',
+        component: MyLog
       },
       {
         path: 'my-access-request',
@@ -89,7 +89,7 @@ const routes = [
       {
         path: 'my-log',
         name: 'Mylog',
-        component: Mylog
+        component: MyLog
       },
     ]
   },

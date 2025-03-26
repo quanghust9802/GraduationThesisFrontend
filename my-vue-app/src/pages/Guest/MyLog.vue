@@ -66,7 +66,7 @@
               'text-red-600 font-bold': slotProps.data.status === 0,
             }"
           >
-            {{ slotProps.data.status === 1 ? "Granted" : "Denied" }}
+            {{ slotProps.data.status === 1 ? "Được vào" : "Bị từ chối" }}
           </span>
         </template>
       </Column>
@@ -88,7 +88,7 @@ import {
 } from "../../services/AccessLogServices/accessLogService";
 
 export default {
-  name: "AccessLog",
+  name: "MyLog",
   components: {
     DataTable,
     Column,

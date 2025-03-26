@@ -1,36 +1,72 @@
 <template>
-  <div class="p-4">
-    <h2 class="text-2xl font-bold mb-4 text-gray-400">Yêu cầu của tôi</h2>
-
-    <div class="mb-4 flex items-center justify-between gap-4">
-      <Dropdown
-        id="statusFilter"
-        :options="statusOptions"
-        v-model="selectedStatus"
-        placeholder="Trạng thái yêu cầu"
-        class="w-48 bg-blue-200"
-      />
+  <div class="p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-2xl font-bold">Danh sách yêu cầu</h1>
       <Button
         label="Thêm mới"
         icon="pi pi-plus"
-         severity="success"
-        class="p-button-success p-2 border-green-500"
-        @click="showDialog = true"
+        @click="showAddDialog = true"
+        class="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
       />
     </div>
-
-    <div v-if="loading" class="flex justify-center mb-4">
-      <ProgressSpinner />
+    <div class="card mb-6">
+      <div class="flex flex-wrap gap-4">
+        <div class="flex flex-col">
+          <label class="mb-2">Thời gian bắt đầu</label>
+          <Calendar
+            v-model="filters.startDate"
+            dateFormat="yy-mm-dd"
+            showIcon
+            class="p-inputtext border border-gray-300 rounded-md px-4 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+          />
+        </div>
+        <div class="flex flex-col">
+          <label class="mb-2">Thời gian kết thúc</label>
+          <Calendar
+            v-model="filters.endDate"
+            dateFormat="yy-mm-dd"
+            showIcon
+            class="p-inputtext border border-gray-300 rounded-md px-4 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+          />
+        </div>
+        <div class="flex flex-col">
+          <label class="mb-2">Trạng thái</label>
+          <Dropdown
+            v-model="filters.status"
+            :options="statusOptions"
+            optionLabel="name"
+            optionValue="value"
+            placeholder="Chọn trạng thái"
+            class="w-48 p-inputtext border border-gray-300 rounded-md"
+          />
+        </div>
+        <div class="flex items-center gap-3 mt-4">
+          <Button
+            label="Lọc"
+            icon="pi pi-filter"
+            @click="fetchRequests"
+            class="border border-green-500 text-green-500 bg-white rounded-lg px-4 py-2 transition-all duration-200 hover:bg-green-500 hover:text-white"
+          />
+          <Button
+            label="Xóa"
+            icon="pi pi-times"
+            @click="clearFilters"
+            class="border border-red-500 text-red-500 bg-white rounded-lg px-4 py-2 transition-all duration-200 hover:bg-red-500 hover:text-white"
+          />
+        </div>
+      </div>
     </div>
 
-    <div
-      v-else-if="requests.length === 0"
-      class="text-center text-gray-500 font-xl"
+    <DataTable
+      :value="accessRequests"
+      :loading="loading"
+      paginator
+      :rows="10"
+      :rowsPerPageOptions="[5, 10, 20, 50]"
+      responsiveLayout="scroll"
+      class="p-datatable-sm"
     >
-      Không có yêu cầu nào tồn tại
-    </div>
-
-    <DataTable v-else :value="requests" class="w-full">
+      <Column field="id" header="ID" sortable />
       <Column field="startTime" header="Thời gian bắt đầu" sortable>
         <template #body="slotProps">
           {{ formatDate(slotProps.data.startTime) }}
@@ -42,239 +78,351 @@
         </template>
       </Column>
       <Column field="purpose" header="Mục đích" />
-      <Column field="status" header="Trạng thái" :sortable="true">
+      <Column field="status" header="Trạng thái duyệt">
         <template #body="slotProps">
-          {{ mapRequestStatus(slotProps.data.status) }}
-        </template>
-      </Column>
-      <Column field="approvalAt" header="Thời gian duyệt" sortable>
-        <template #body="slotProps">
-          {{
-            slotProps.data.approvalAt
-              ? formatDate(slotProps.data.approvalAt)
-              : "Chưa duyệt"
-          }}
+          <span :class="getStatusClass(slotProps.data.status)">
+            {{ getStatusText(slotProps.data.status) }}
+          </span>
         </template>
       </Column>
       <Column header="Thao tác">
         <template #body="slotProps">
-          <button
-            v-if="slotProps.data.status === 0"
-            @click="cancelRequest(slotProps.data.id)"
-            class="bg-amber-500 text-white px-2 py-1 font-bold rounded hover:bg-amber-600"
-          >
-            Hủy yêu cầu
-          </button>
+          <Button
+            icon="pi pi-eye"
+            class="p-button-rounded p-button-info mr-2"
+            @click="viewDetails(slotProps.data)"
+          />
         </template>
       </Column>
     </DataTable>
 
-    <!-- Dialog tạo mới request -->
     <Dialog
-    :visible="showDialog"
-    header="Thêm mới yêu cầu"
-    :style="{ width: '550px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)' }"
-    :modal="true"
-    class="p-dialog-modern"
-    @update:visible="showDialog = $event"
-  >
-    <div class="flex flex-col gap-6 p-6 bg-gray-50 rounded-b-lg">
-      <!-- Thời gian bắt đầu -->
-      <div class="space-y-2">
-        <label class="block text-md font-semibold text-gray-800">Thời gian bắt đầu</label>
-        <Calendar
-          v-model="newRequest.startTime"
-          showTime
-          hourFormat="24"
-          :minDate="new Date()"
-          class="p-4 w-full  rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Chọn thời gian bắt đầu"
-          dateFormat="dd/mm/yy"
-          panelClass="shadow-lg border-0"
-        />
+      :visible="showDetailDialog"
+      header="Request Details"
+      :style="{ width: '40vw' }"
+      :modal="true"
+      @update:visible="showDetailDialog = $event"
+    >
+      <div v-if="selectedRequest" class="grid grid-cols-2 gap-4">
+        <div>Start: {{ formatDate(selectedRequest.startTime) }}</div>
+        <div>End: {{ formatDate(selectedRequest.endTime) }}</div>
+        <div class="col-span-2">Purpose: {{ selectedRequest.purpose }}</div>
       </div>
+    </Dialog>
 
-      <!-- Thời gian kết thúc -->
-      <div class="space-y-2">
-        <label class="block text-md font-semibold text-gray-800">Thời gian kết thúc</label>
-        <Calendar
-          v-model="newRequest.endTime"
-          showTime
-          hourFormat="24"
-          :minDate="newRequest.startTime || new Date()"
-          class="p-4 w-full border-gray-500 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Chọn thời gian kết thúc"
-          dateFormat="dd/mm/yy"
-          panelClass="shadow-lg border-0"
-        />
+    <Dialog
+      :visible="showAddDialog"
+      header="Thêm yêu cầu mới"
+      :style="{ width: '50vw' }"
+      :modal="true"
+      @update:visible="showAddDialog = $event"
+    >
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col">
+          <label class="mb-2">Thời gian bắt đầu</label>
+          <Calendar
+            v-model="newRequest.startTime"
+            dateFormat="yy-mm-dd"
+            showIcon
+            showTime
+            :class="{ 'p-invalid': v$.newRequest.startTime.$error }"
+            class="p-inputtext border border-gray-300 rounded-md px-4 py-2"
+          />
+          <small v-if="v$.newRequest.startTime.$error" class="p-error">
+            Vui lòng chọn thời gian bắt đầu
+          </small>
+        </div>
+        <div class="flex flex-col">
+          <label class="mb-2">Thời gian kết thúc</label>
+          <Calendar
+            v-model="newRequest.endTime"
+            dateFormat="yy-mm-dd"
+            showIcon
+            showTime
+            :class="{ 'p-invalid': v$.newRequest.endTime.$error }"
+            class="p-inputtext border border-gray-300 rounded-md px-4 py-2"
+          />
+          <small v-if="v$.newRequest.endTime.$error" class="p-error">
+            Vui lòng chọn thời gian kết thúc
+          </small>
+        </div>
+        <div class="flex flex-col col-span-2">
+          <label class="mb-2">Mục đích</label>
+          <textarea
+            v-model="newRequest.purpose"
+            :class="{ 'p-invalid': v$.newRequest.purpose.$error }"
+            class="p-inputtext border border-gray-300 rounded-md px-4 py-2"
+            rows="3"
+            placeholder="Nhập mục đích yêu cầu"
+          />
+          <small v-if="v$.newRequest.purpose.$error" class="p-error">
+            Vui lòng nhập mục đích
+          </small>
+        </div>
       </div>
-
-      <!-- Mục đích -->
-      <div class="space-y-2">
-        <label class="block text-md font-semibold text-gray-800">Mục đích</label>
-        <Textarea
-          v-model="newRequest.purpose"
-          rows="4"
-          class="w-full border-gray-500 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-4"
-          placeholder="Nhập mục đích của yêu cầu"
-        />
-      </div>
-    </div>
-
-    <template #footer>
-      <div class="flex justify-end gap-3 p-4 bg-white border-t border-gray-200 rounded-b-lg">
+      <template #footer>
         <Button
           label="Hủy"
           icon="pi pi-times"
-          class="p-button-outlined p-button-secondary w-28 h-10 text-gray-700 hover:bg-gray-100 transition-colors duration-200 px-2 "
-          @click="showDialog = false"
+          @click="showAddDialog = false"
+          class="p-button-outlined p-button-rounded p-button-lg px-6 py-3 text-gray-600 border-gray-400 transition-all duration-200 hover:bg-gray-200 hover:border-gray-500"
         />
         <Button
-          label="Tạo"
+          label="Thêm"
           icon="pi pi-check"
-          class="p-button-raised p-button-success w-28 h-10 bg-green-600 hover:bg-green-700 text-white transition-colors duration-200 px-2 "
-          @click="handleCreate"
+          @click="submitNewRequest"
+          :disabled="loading"
+          class="p-button-success p-button-rounded p-button-lg px-6 py-3 transition-all duration-200 bg-green-500 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
         />
-      </div>
-    </template>
-  </Dialog>
-
+      </template>
+    </Dialog>
+    <Toast ref="toast" />
   </div>
 </template>
 
 <script>
-import { ref, watch, onMounted, computed } from "vue";
+import { ref, onMounted } from "vue";
+import { useStore } from "vuex";
+import { useToast } from "primevue/usetoast";
+import { useVuelidate } from "@vuelidate/core";
+import { required } from "@vuelidate/validators";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
-import Dropdown from "primevue/dropdown";
-import ProgressSpinner from "primevue/progressspinner";
 import Button from "primevue/button";
-import Dialog from "primevue/dialog";
 import Calendar from "primevue/calendar";
-import Textarea from "primevue/textarea";
-import { format } from "date-fns";
-import {
-  getByStatus,
-  createRequest,
-} from "../../services/AccessRequestServices/accessRequestService.js";
+import Dropdown from "primevue/dropdown";
+import Dialog from "primevue/dialog";
+import Toast from "primevue/toast";
+import { getAccessRequests, getByFilter, createRequest } from "../../services/AccessRequestServices/accessRequestService";
 
 export default {
+  name: "MyRequest",
   components: {
     DataTable,
     Column,
-    Dropdown,
-    ProgressSpinner,
     Button,
-    Dialog,
     Calendar,
-    Textarea,
+    Dropdown,
+    Dialog,
+    Toast,
   },
   setup() {
-    const requests = ref([]);
-    const selectedStatus = ref(0);
+    const accessRequests = ref([]);
     const loading = ref(false);
-    const showDialog = ref(false);
+    const showDetailDialog = ref(false);
+    const selectedRequest = ref(null);
+    const store = useStore();
+    const toast = useToast();
+    const filters = ref({
+      startDate: null,
+      endDate: null,
+      status: null,
+      userId: null,
+    });
 
+    const statusOptions = [
+      { name: "Đang chờ", value: 0 },
+      { name: "Đã duyệt", value: 1 },
+      { name: "Từ chối", value: 2 },
+    ];
+
+    const showAddDialog = ref(false);
     const newRequest = ref({
       startTime: null,
       endTime: null,
       purpose: "",
     });
 
-    const statusOptions = [
-      { label: "Đang chờ", value: 0 },
-      { label: "Đã duyệt", value: 1 },
-      { label: "Bị từ chối", value: 2 },
-      { label: "Đã hủy", value: 3 },
-    ];
-
-    const statusMapping = {
-      0: "Đang chờ",
-      1: "Đã duyệt",
-      2: "Bị từ chối",
+    // Validation rules
+    const rules = {
+      newRequest: {
+        startTime: { required },
+        endTime: { required },
+        purpose: { required },
+      },
     };
+    const v$ = useVuelidate(rules, { newRequest });
 
-    const fetchRequests = async (status) => {
+    const fetchRequests = async () => {
       loading.value = true;
       try {
-        const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-        const userId = currentUser?.userId;
-        const response = await getByStatus(userId, status);
-        requests.value = response?.data;
+        const user = store.state.currentUser;
+        const userId = user?.userId || null;
+
+        if (filters.value.startDate || filters.value.endDate || filters.value.status !== null) {
+          const response = await getByFilter(
+            filters.value.startDate,
+            filters.value.endDate,
+            filters.value.status,
+            userId
+          );
+          accessRequests.value = response?.data || [];
+        } else {
+          const response = await getAccessRequests();
+          accessRequests.value = response?.data || [];
+        }
       } catch (error) {
         console.error("Error fetching requests:", error);
+        toast.add({
+          severity: "error",
+          summary: "Lỗi",
+          detail: "Không thể tải danh sách yêu cầu",
+          life: 3000,
+        });
       } finally {
         loading.value = false;
       }
     };
 
+    const clearFilters = () => {
+      filters.value = {
+        startDate: null,
+        endDate: null,
+        status: null,
+      };
+      fetchRequests();
+    };
+
     const formatDate = (date) => {
-      return format(new Date(date), "dd/MM/yyyy HH:mm");
+      return date ? new Date(date).toLocaleString() : "";
     };
 
-    const cancelRequest = async (requestId) => {
-  try {
-    requests.value = requests.value.map((request) =>
-      request.id === requestId ? { ...request, status: 3 } : request
-    );
-    // Chỉ fetch lại nếu cần
-    if (selectedStatus.value !== 3) {
-      await fetchRequests(selectedStatus.value);
-    }
-  } catch (error) {
-    console.error("Error cancelling request:", error);
-  }
-};
-
-
-    const mapRequestStatus = (status) => {
-      return statusMapping[status] || "Không xác định";
-    };
-
-
-
-    const handleCreate = async () => {
-      try {
-        const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-        const requestData = {
-          userRequestId: currentUser?.userId,
-          startTime: newRequest.value.startTime,
-          endTime: newRequest.value.endTime,
-          purpose: newRequest.value.purpose,
-          status: 0, 
-          approvalAt: null,
-        };
-
-        await createRequest(requestData);
-        showDialog.value = false;
-        newRequest.value = { startTime: null, endTime: null, purpose: "" };
-        // await fetchRequests(selectedStatus.value);
-      } catch (error) {
-        console.error("Error creating request:", error);
+    const getStatusText = (status) => {
+      switch (status) {
+        case 0:
+          return "Đang chờ";
+        case 1:
+          return "Đã duyệt";
+        case 2:
+          return "Từ chối";
       }
     };
 
-    watch(selectedStatus, (newStatus) => {
-      fetchRequests(newStatus);
+    const getStatusClass = (status) => {
+      return {
+        "p-1 rounded text-white": true,
+        "bg-yellow-500": status === 0,
+        "bg-green-500": status === 1,
+        "bg-red-500": status === 2,
+      };
+    };
+
+    const viewDetails = (request) => {
+      selectedRequest.value = request;
+      showDetailDialog.value = true;
+    };
+
+    const submitNewRequest = async () => {
+  v$.value.$touch();
+  if (v$.value.$invalid) {
+    toast.add({
+      severity: "error",
+      summary: "Lỗi",
+      detail: "Vui lòng kiểm tra lại thông tin nhập vào.",
+      life: 3000,
+    });
+    return;
+  }
+
+  const user = store.state.currentUser;
+  const formData = new FormData();
+
+  const startTime = newRequest.value.startTime
+    ? new Date(newRequest.value.startTime).toISOString()
+    : null;
+  const endTime = newRequest.value.endTime
+    ? new Date(newRequest.value.endTime).toISOString()
+    : null;
+
+  formData.append("startTime", startTime);
+  formData.append("endTime", endTime);
+  formData.append("purpose", newRequest.value.purpose);
+  formData.append("userId", user?.userId);
+  formData.append("status", 0);
+
+  loading.value = true;
+
+  try {
+    const response = await createRequest(formData);
+    
+    if (response.errCode === 200) {
+      toast.add({
+        severity: "success",
+        summary: "Thành công",
+        detail: response.errDesc || "Tạo yêu cầu thành công.",
+        life: 3000,
+      });
+      
+      newRequest.value = {
+        startTime: null,
+        endTime: null,
+        purpose: "",
+      };
+      v$.value.$reset();
+      showAddDialog.value = false;
+      fetchRequests();
+    } else {
+      let errorDetail = response.errDesc || "Tạo yêu cầu thất bại.";
+      if (response.errors) {
+        errorDetail = Object.entries(response.errors)
+          .map(([field, messages]) => `${field}: ${messages.join(", ")}`)
+          .join("; ");
+      }
+      toast.add({
+        severity: "error",
+        summary: "Lỗi",
+        detail: errorDetail,
+        life: 3000,
+      });
+    }
+  } catch (error) {
+    toast.add({
+      severity: "error",
+      summary: "Lỗi",
+      detail: "Có lỗi xảy ra, vui lòng thử lại sau!",
+      life: 3000,
+    });
+  } finally {
+    loading.value = false;
+  }
+};
+
+    onMounted(() => {
+      fetchRequests();
     });
 
-    // onMounted(() => fetchRequests(0));
-
     return {
-      requests,
-      selectedStatus,
-      statusOptions,
-      fetchRequests,
-      cancelRequest,
+      accessRequests,
       loading,
+      filters,
+      statusOptions,
+      showDetailDialog,
+      selectedRequest,
+      fetchRequests,
+      clearFilters,
       formatDate,
-      mapRequestStatus,
-      showDialog,
+      getStatusText,
+      getStatusClass,
+      viewDetails,
+      showAddDialog,
       newRequest,
-      handleCreate,
+      submitNewRequest,
+      v$,
     };
   },
 };
 </script>
 
-<style scoped></style>
+<style>
+.card {
+  @apply bg-white p-4 rounded-lg shadow-md;
+}
+.p-invalid {
+  border-color: #ef4444 !important;
+}
+.p-error {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+</style>

@@ -61,14 +61,14 @@
       class="p-datatable-sm"
     >
       <Column field="id" header="ID" sortable />
-      <Column field="requestUser" header="Người yêu cầu">
+      <Column field="userRequestId" header="Người yêu cầu">
         <template #body="slotProps">
-          {{ slotProps.data.requestUser?.username || "N/A" }}
+          {{ slotProps.data.userRequestId || "Trống" }}
         </template>
       </Column>
-      <Column field="approveUser" header="Người duyệt">
+      <Column field="userApprovalid" header="Người duyệt">
         <template #body="slotProps">
-          {{ slotProps.data.approveUser?.username || "N/A" }}
+          {{ slotProps.data.userApprovalid || "Trống" }}
         </template>
       </Column>
       <Column field="startTime" header="Thời gian bắt đầu" sortable>
@@ -119,6 +119,7 @@
         <div class="col-span-2">Purpose: {{ selectedRequest.purpose }}</div>
       </div>
     </Dialog>
+    <Toast ref="toast" />
   </div>
 </template>
 
@@ -130,6 +131,9 @@ import Button from "primevue/button";
 import Calendar from "primevue/calendar";
 import Dropdown from "primevue/dropdown";
 import Dialog from "primevue/dialog";
+import { useToast } from "primevue/usetoast";
+import Toast from "primevue/toast";
+import { getByFilter, getAccessRequests } from "../../services/AccessRequestServices/accessRequestService";
 
 export default {
   name: "AccessRequestManagement",
@@ -140,12 +144,14 @@ export default {
     Calendar,
     Dropdown,
     Dialog,
+    Toast
   },
   setup() {
     const accessRequests = ref([]);
     const loading = ref(false);
     const showDetailDialog = ref(false);
     const selectedRequest = ref(null);
+    const toast = useToast();
 
     const filters = ref({
       startDate: null,
@@ -162,19 +168,30 @@ export default {
     const fetchRequests = async () => {
       loading.value = true;
       try {
-        const response = await fetch("/api/access-requests", {
-          params: {
-            startDate: filters.value.startDate,
-            endDate: filters.value.endDate,
-            status: filters.value.status,
-          },
-        });
-        accessRequests.value = await response.json();
+        if (filters.value.startDate || filters.value.endDate || filters.value.status !== null) {
+          const response = await getByFilter(
+            filters.value.startDate,
+            filters.value.endDate,
+            filters.value.status,
+          );
+          accessRequests.value = response?.data || [];
+        } else {
+          const response = await getAccessRequests();
+          accessRequests.value = response?.data || [];
+        }
       } catch (error) {
         console.error("Error fetching requests:", error);
+        toast.add({
+          severity: "error",
+          summary: "Lỗi",
+          detail: "Không thể tải danh sách yêu cầu",
+          life: 3000,
+        });
+      } finally {
+        loading.value = false;
       }
-      loading.value = false;
     };
+
 
     const clearFilters = () => {
       filters.value = {

@@ -5,9 +5,9 @@ export const getAccessRequests = async () => {
   return response.data;
 };
 
-  export const getByFilter = async (startDate, endDate, requestId) => {
+  export const getByFilter = async (startDate, endDate,status, userId) => {
     const response = await apiClient.get('/access-request/get-filter', {
-      params: { startDate, endDate, requestId }
+      params: { startDate, endDate, status , userId}
     });
     return response.data;
   };

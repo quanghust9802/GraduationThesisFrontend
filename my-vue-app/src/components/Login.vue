@@ -123,7 +123,7 @@ export default {
         if (response.errCode === 200) {
           const token = response?.data?.token;
           this.$store.dispatch("login", token);
-          this.$router.push("/guest");
+          this.$router.push("/guest/my-log");
           this.$toast.add({
             severity: "success",
             summary: "Thành công",

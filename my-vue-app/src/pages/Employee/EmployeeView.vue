@@ -88,7 +88,7 @@ import {
 } from "../../services/AccessLogServices/accessLogService";
 
 export default {
-  name: "AccessLog",
+  name: "EmployeeView",
   components: {
     DataTable,
     Column,

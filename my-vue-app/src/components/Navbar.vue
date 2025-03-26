@@ -147,7 +147,7 @@ export default {
         </template>
         <template v-if="user.role === 'Guest'">
           <router-link 
-            to="/guest" 
+            to="/guest/my-log" 
             class="text-blue-400 hover:text-blue-600 transition-colors duration-300 text-xl focus:border-b-2 focus:border-blue-400"
             :class="{ 'text-blue-700 font-semibold': isActive('/guest/my-log') }"
           >

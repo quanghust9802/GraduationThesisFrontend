@@ -1,11 +1,6 @@
 <template>
   <div class="p-4">
-    <div class="flex justify-between items-center mb-4">
-      <!-- <h1
-        class="text-2xl font-bold text-gray-400 mb-4 border-b-2 border-gray-100 pb-2"
-      >
-        Quản lý người dùng
-      </h1> -->
+    <div class="flex justify-end  items-center mb-4 ">
       <button
         @click="openAddUserDialog"
         class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 mb-4 rounded"
