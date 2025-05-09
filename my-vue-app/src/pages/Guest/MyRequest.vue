@@ -301,9 +301,9 @@ export default {
     const getStatusClass = (status) => {
       return {
         "p-1 rounded text-white": true,
-        "bg-yellow-500": status === 0,
-        "bg-green-500": status === 1,
-        "bg-red-500": status === 2,
+        "text-yellow-400": status === 0,
+        "text-green-400": status === 1,
+        "text-red-400": status === 2,
       };
     };
 

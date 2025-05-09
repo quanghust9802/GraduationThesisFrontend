@@ -20,6 +20,13 @@ export const getAccessRequests = async () => {
     return response.data;
   };
 
+  export const updateStatus = async (id, status) => {
+    const response = await apiClient.put('/access-request/update-status', null,{
+      params: { id, status }
+    });
+    return response.data;
+  };
+
     
   export const createRequest = async (formData) => {
     try {

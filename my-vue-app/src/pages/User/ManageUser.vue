@@ -23,9 +23,10 @@
       :sortField="sortField"
       :sortOrder="sortOrder"
       class="p-datatable-gridlines p-datatable-striped"
-      dataKey="cccdId"
+      dataKey="id"
       selectionMode="single"
       responsiveLayout="scroll"
+      scrolable
     >
       <template #header>
         <div class="flex justify-between items-center">
@@ -68,8 +69,7 @@
         </template>
       </Column>
       <Column field="email" header="Email" sortable></Column>
-
-      <Column header="Thao tác">
+      <Column header="Thao tác" class="min-w-[150px] sticky right-0 bg-gray-50 z-10">
         <template #body="slotProps">
           <Button
             icon="pi pi-pencil"
@@ -188,8 +188,8 @@ export default {
     const saveUser = async (user) => {
       loading.value = true;
       try {
-        if (user.cccdId) {
-          await updateUser(user.cccdId, user);
+        if (user.id) {
+          await updateUser(user.id, user);
           showToast("Cập nhật thông tin người dùng thành công", "success");
         } else {
           await insertUser(user);
