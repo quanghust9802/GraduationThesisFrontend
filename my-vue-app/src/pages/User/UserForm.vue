@@ -43,24 +43,6 @@
               }}
             </span>
           </div>
-
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700">Giới tính</label>
-            <div class="flex items-center mt-1 space-x-4">
-              <label class="flex items-center">
-                <input type="radio" v-model="form.gender" :value="1" class="form-radio" />
-                <span class="ml-2">Nam</span>
-              </label>
-              <label class="flex items-center">
-                <input type="radio" v-model="form.gender" :value="2" class="form-radio" />
-                <span class="ml-2">Nữ</span>
-              </label>
-            </div>
-            <span v-if="v$.gender.$error" class="text-red-500 text-sm">
-              Vui lòng chọn giới tính
-            </span>
-          </div>
-
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700">Tên đăng nhập</label>
             <input
@@ -76,6 +58,23 @@
                   ? "Vui lòng nhập tên đăng nhập"
                   : "Tên đăng nhập phải có ít nhất 4 ký tự"
               }}
+            </span>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Giới tính</label>
+            <div class="flex items-center mt-1 space-x-4">
+              <label class="flex items-center">
+                <input type="radio" v-model="form.gender" :value="1" class="form-radio" />
+                <span class="ml-2">Nam</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" v-model="form.gender" :value="2" class="form-radio" />
+                <span class="ml-2">Nữ</span>
+              </label>
+            </div>
+            <span v-if="v$.gender.$error" class="text-red-500 text-sm">
+              Vui lòng chọn giới tính
             </span>
           </div>
         </div>
@@ -133,27 +132,46 @@
               v-model="form.userRoleId"
               class="mt-1 block w-full p-2 border border-gray-300 rounded-md"
             >
-              <option :value="0">Quản trị hệ thống</option>
-              <option :value="1">Nhân viên nội bộ</option>
-              <option :value="2">Khách</option>
+              <option :value="1">Quản trị hệ thống</option>
+              <option :value="3">Nhân viên nội bộ</option>
+              <option :value="4">Khách</option>
             </select>
+          </div>
+
+          <!-- avatar -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Ảnh đại diện</label>
+            <input
+              type="file"
+              id="avatar"
+              accept="image/*"
+              @change="handleFileChange"
+              class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-500"
+            />
+            <span v-if="avatarError" class="text-red-500 text-sm">{{ avatarError }}</span>
+            <div v-if="form.avatarPreview" class="mt-2">
+              <img
+                :src="form.avatarPreview"
+                alt="Ảnh xem trước"
+                class="w-32 h-32 object-cover rounded-lg border border-gray-300"
+              />
+            </div>
           </div>
         </div>
       </div>
       <div class="flex justify-end mt-4 gap-4">
-  <Button
-    label="Hủy"
-    class="p-button-outlined p-button-rounded p-button-lg px-6 py-3 text-gray-600 border-gray-400 transition-all duration-200 hover:bg-gray-200 hover:border-gray-500"
-    @click="$emit('close')"
-  />
-  <Button
-    label="Lưu"
-    type="submit"
-    class="p-button-success p-button-rounded p-button-lg px-6 py-3 transition-all duration-200 bg-green-500 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-    :disabled="v$.$invalid"
-  />
-</div>
-
+        <Button
+          label="Hủy"
+          class="p-button-outlined p-button-rounded p-button-lg px-6 py-3 text-gray-600 border-gray-400 transition-all duration-200 hover:bg-gray-200 hover:border-gray-500"
+          @click="$emit('close')"
+        />
+        <Button
+          label="Lưu"
+          type="submit"
+          class="p-button-success p-button-rounded p-button-lg px-6 py-3 transition-all duration-200 bg-green-500 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          :disabled="v$.$invalid"
+        />
+      </div>
     </form>
   </div>
 </template>
@@ -184,10 +202,13 @@ export default {
       phoneNumber: '',
       address: '',
       email: '',
-      userRoleId: 2
+      userRoleId: 1,
+      avatar: null, // File ảnh mới
+      avatarPreview: null, // URL xem trước
+      existingImageBlob: null // Dữ liệu nhị phân của ảnh hiện tại
     });
 
-    
+    const avatarError = ref('');
 
     const rules = {
       fullName: { required, minLength: minLength(2) },
@@ -200,9 +221,37 @@ export default {
 
     const v$ = useVuelidate(rules, form);
 
+    // Tải ảnh hiện tại từ imageUrl và lưu dưới dạng Blob
+    const loadExistingImage = async (imageUrl) => {
+      if (imageUrl) {
+        try {
+          const response = await fetch(imageUrl, { mode: 'cors' });
+          if (!response.ok) throw new Error('Không thể tải ảnh hiện tại');
+          const blob = await response.blob();
+          form.value.existingImageBlob = blob;
+          form.value.avatarPreview = imageUrl; // Giữ URL cho xem trước
+        } catch (error) {
+          console.error('Lỗi khi tải ảnh hiện tại:', error);
+          avatarError.value = 'Không thể tải ảnh hiện tại';
+          form.value.existingImageBlob = null;
+          form.value.avatarPreview = null;
+        }
+      } else {
+        form.value.existingImageBlob = null;
+        form.value.avatarPreview = null;
+      }
+    };
+
     watch(() => props.user, (newUser) => {
       if (newUser) {
-        form.value = { ...newUser };
+        form.value = {
+          ...newUser,
+          avatar: null,
+          avatarPreview: newUser.imageUrl || null,
+          existingImageBlob: null
+        };
+        // Tải ảnh hiện tại nếu có imageUrl
+        loadExistingImage(newUser.imageUrl);
       } else {
         form.value = {
           cccdId: '',
@@ -212,23 +261,86 @@ export default {
           phoneNumber: '',
           address: '',
           email: '',
-          userRoleId: 2
+          userRoleId: 1,
+          avatar: null,
+          avatarPreview: null,
+          existingImageBlob: null
         };
       }
     }, { immediate: true });
 
+    const handleFileChange = (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        if (!file.type.startsWith('image/')) {
+          avatarError.value = 'Vui lòng chọn file ảnh hợp lệ';
+          form.value.avatar = null;
+          form.value.avatarPreview = null;
+          form.value.existingImageBlob = null;
+        } else if (file.size > 5 * 1024 * 1024) { // Giới hạn 5MB
+          avatarError.value = 'Ảnh không được vượt quá 5MB';
+          form.value.avatar = null;
+          form.value.avatarPreview = null;
+          form.value.existingImageBlob = null;
+        } else {
+          form.value.avatar = file;
+          avatarError.value = '';
+          form.value.avatarPreview = URL.createObjectURL(file);
+          form.value.existingImageBlob = null; // Xóa Blob cũ vì chọn ảnh mới
+        }
+      } else {
+        // Khôi phục ảnh hiện tại
+        form.value.avatar = null;
+        form.value.avatarPreview = props.user.imageUrl || null;
+        loadExistingImage(props.user.imageUrl);
+      }
+    };
+
     const handleSave = () => {
       v$.value.$touch();
       if (!v$.value.$invalid) {
-        emit('save', { ...form.value });
+        const formData = new FormData();
+        formData.append('cccdId', form.value.cccdId);
+        formData.append('username', form.value.username);
+        formData.append('fullName', form.value.fullName);
+        formData.append('gender', form.value.gender);
+        formData.append('phoneNumber', form.value.phoneNumber);
+        formData.append('address', form.value.address || '');
+        formData.append('email', form.value.email);
+        formData.append('userRoleId', form.value.userRoleId);
+
+        if (form.value.avatar) {
+          // Gửi file ảnh mới
+          formData.append('imageUrl', form.value.avatar, 'avatar.jpg');
+        } else if (form.value.existingImageBlob) {
+
+          formData.append('imageUrl', form.value.existingImageBlob, 'existing-avatar.jpg');
+        }
+
+        // Debug: In formData
+        console.log([...formData.entries()]);
+
+        emit('save', formData);
+      }
+    };
+
+    const cleanup = () => {
+      if (form.value.avatarPreview) {
+        URL.revokeObjectURL(form.value.avatarPreview);
       }
     };
 
     return {
       form,
       v$,
-      handleSave
+      avatarError,
+      handleFileChange,
+      handleSave,
+      cleanup
     };
+  },
+  beforeUnmount() {
+    this.cleanup();
   }
 };
 </script>

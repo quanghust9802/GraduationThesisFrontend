@@ -174,11 +174,11 @@ export default {
 
     const ConvertRoleToString = (role) => {
       switch (role) {
-        case 0:
-          return "Quản trị hệ thống";
         case 1:
+          return "Quản trị hệ thống";
+        case 3:
           return "Nhân viên nội bộ";
-        case 2:
+        case 4:
           return "Khách";
         default:
           return "";

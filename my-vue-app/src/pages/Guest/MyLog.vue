@@ -50,9 +50,6 @@
       responsiveLayout="scroll"
       class="p-datatable-sm"
     >
-      <Column field="id" header="Mã truy cập" sortable />
-      <Column field="user.fullName" header="Người truy cập" sortable />
-      <Column field="accessRequestId" header="Mã yêu cầu" sortable />
       <Column field="accessTime" header="Thời gian truy cập" sortable>
         <template #body="slotProps">
           {{ formatDate(slotProps.data.accessTime) }}
@@ -62,11 +59,11 @@
         <template #body="slotProps">
           <span
             :class="{
-              'text-green-600 font-bold': slotProps.data.status === 1,
-              'text-red-600 font-bold': slotProps.data.status === 0,
+              'text-green-500 ': slotProps.data.status === 1,
+              'text-red-500 ': slotProps.data.status === 0,
             }"
           >
-            {{ slotProps.data.status === 1 ? "Được vào" : "Bị từ chối" }}
+            {{ slotProps.data.status === 1 ? "Mở thành công" : "Từ chối mở" }}
           </span>
         </template>
       </Column>
@@ -110,11 +107,13 @@ export default {
       try {
         const startDate = filters.value.startDate || null;
         const endDate = filters.value.endDate || null;
-        const user = computed(() => store.state.currentUser);
-        const userId = computed(() => user.value?.userId || null);
+        // const user = computed(() => store.state.currentUser);
+        // const userId = computed(() => user.value?.userId || null);
+        const user = store.state.currentUser;
+        const userId = user?.userId || null;
 
-        const data = await getByFilter(startDate, endDate, userId);
-        accessLogs.value = data;
+        const data = await getByFilter(startDate, endDate, null, userId);
+        accessLogs.value = data.data;
       } catch (error) {
         console.error("Error fetching logs:", error);
       }

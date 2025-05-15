@@ -96,19 +96,42 @@
       </Column>
     </DataTable>
 
-    <Dialog
-      :visible="showDetailDialog"
-      header="Request Details"
-      :style="{ width: '40vw' }"
-      :modal="true"
-      @update:visible="showDetailDialog = $event"
-    >
-      <div v-if="selectedRequest" class="grid grid-cols-2 gap-4">
-        <div>Start: {{ formatDate(selectedRequest.startTime) }}</div>
-        <div>End: {{ formatDate(selectedRequest.endTime) }}</div>
-        <div class="col-span-2">Purpose: {{ selectedRequest.purpose }}</div>
-      </div>
-    </Dialog>
+<Dialog
+    :visible="showDetailDialog"
+    header="Chi tiết yêu cầu"
+    :style="{ width: '40vw' }"
+    :modal="true"
+    :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
+    @update:visible="showDetailDialog = $event"
+    class="p-4 rounded-lg shadow-lg"
+  >
+    <div v-if="selectedRequest" class="p-4">
+      <Fieldset legend="Thông tin yêu cầu" class="border rounded-lg">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col">
+            <label class="text-sm font-semibold text-gray-700 mb-1">Thời gian bắt đầu</label>
+            <span class="text-base text-gray-900">{{ formatDate(selectedRequest.startTime) }}</span>
+          </div>
+          <div class="flex flex-col">
+            <label class="text-sm font-semibold text-gray-700 mb-1">Thời gian kết thúc</label>
+            <span class="text-base text-gray-900">{{ formatDate(selectedRequest.endTime) }}</span>
+          </div>
+          <div class="col-span-1 md:col-span-2 flex flex-col">
+            <label class="text-sm font-semibold text-gray-700 mb-1">Mục đích</label>
+            <span class="text-base text-gray-900">{{ selectedRequest.purpose }}</span>
+          </div>
+        </div>
+      </Fieldset>
+    </div>
+    <template #footer>
+      <Button
+        label="Đóng"
+        icon="pi pi-times"
+        class="p-button-text p-button-rounded"
+        @click="showDetailDialog = false"
+      />
+    </template>
+  </Dialog>
 
     <Dialog
       :visible="showAddDialog"
@@ -249,18 +272,25 @@ export default {
         const user = store.state.currentUser;
         const userId = user?.userId || null;
 
-        if (filters.value.startDate || filters.value.endDate || filters.value.status !== null) {
-          const response = await getByFilter(
+        // if (filters.value.startDate || filters.value.endDate || filters.value.status !== null) {
+        //   const response = await getByFilter(
+        //     filters.value.startDate,
+        //     filters.value.endDate,
+        //     filters.value.status,
+        //     userId
+        //   );
+        //   accessRequests.value = response?.data || [];
+        // } else {
+        //   const response = await getAccessRequests();
+        //   accessRequests.value = response?.data || [];
+        // }
+            const response = await getByFilter(
             filters.value.startDate,
             filters.value.endDate,
             filters.value.status,
             userId
           );
           accessRequests.value = response?.data || [];
-        } else {
-          const response = await getAccessRequests();
-          accessRequests.value = response?.data || [];
-        }
       } catch (error) {
         console.error("Error fetching requests:", error);
         toast.add({
@@ -300,7 +330,7 @@ export default {
 
     const getStatusClass = (status) => {
       return {
-        "p-1 rounded text-white": true,
+        "p-1 rounded ": true,
         "text-yellow-400": status === 0,
         "text-green-400": status === 1,
         "text-red-400": status === 2,
@@ -337,7 +367,7 @@ export default {
   formData.append("startTime", startTime);
   formData.append("endTime", endTime);
   formData.append("purpose", newRequest.value.purpose);
-  formData.append("userId", user?.userId);
+  formData.append("userRequestId", user?.userId);
   formData.append("status", 0);
 
   loading.value = true;
