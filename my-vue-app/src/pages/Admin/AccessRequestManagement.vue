@@ -61,15 +61,15 @@
       class="p-datatable-sm"
     >
       <Column field="id" header="ID" sortable />
-      <Column field="userRequestId" header="Người yêu cầu">
-        <template #body="slotProps">
-          {{ slotProps.data.userRequestId || "Trống" }}
-        </template>
+      <Column field="requestUser.fullName" header="Người yêu cầu">
+        <!-- <template #body="slotProps">
+          {{ slotProps.data.requestUser.fullName || "Trống" }}
+        </template> -->
       </Column>
-      <Column field="userApprovalid" header="Người duyệt">
-        <template #body="slotProps">
-          {{ slotProps.data.userApprovalid || "Trống" }}
-        </template>
+      <Column field="approveUser.fullName" header="Người duyệt">
+        <!-- <template #body="slotProps">
+          {{ slotProps.data.approveUser?.fullName || "Trống" }}
+        </template> -->
       </Column>
       <Column field="startTime" header="Thời gian bắt đầu" sortable>
         <template #body="slotProps">

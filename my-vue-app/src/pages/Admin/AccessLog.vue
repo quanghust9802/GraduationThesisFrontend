@@ -58,9 +58,7 @@
       responsiveLayout="scroll"
       class="p-datatable-sm"
     >
-      <Column field="id" header="Mã truy cập" sortable />
       <Column field="user.fullName" header="Người truy cập" sortable />
-      <Column field="accessRequestId" header="Mã yêu cầu" sortable />
       <Column field="accessTime" header="Thời gian truy cập" sortable>
         <template #body="slotProps">
           {{ formatDate(slotProps.data.accessTime) }}
@@ -74,7 +72,7 @@
               'text-red-600 font-bold': slotProps.data.status === 0,
             }"
           >
-            {{ slotProps.data.status === 1 ? "Granted" : "Denied" }}
+            {{ slotProps.data.status === 1 ? "Mở thành công" : "Từ chối mở" }}
           </span>
         </template>
       </Column>
@@ -120,7 +118,7 @@ export default {
         const requestId = filters.value.requestId || null;
 
         const data = await getByFilter(startDate, endDate, requestId);
-        accessLogs.value = data;
+        accessLogs.value = data.data;
       } catch (error) {
         console.error("Error fetching logs:", error);
       }
